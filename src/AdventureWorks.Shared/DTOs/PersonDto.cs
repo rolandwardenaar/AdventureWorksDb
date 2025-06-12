@@ -21,6 +21,7 @@ public class PersonListDto
     public string LastName { get; set; } = string.Empty;
     public string FullName => $"{FirstName} {LastName}";
     public string? PrimaryEmail { get; set; }
+    public string? PrimaryPhone { get; set; }
     public string PersonType { get; set; } = string.Empty;
 }
 

@@ -1,39 +1,52 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">AdventureWorks.Web</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
-
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="oi oi-plus" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="fetchdata">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
-@code {
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-}
+﻿<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
+        Home
+    </MudNavLink>
+    
+    <MudNavGroup Text="People" Icon="@Icons.Material.Filled.People" Expanded="false">
+        <MudNavLink Href="/people" Icon="@Icons.Material.Filled.PersonSearch">
+            Browse People
+        </MudNavLink>
+        <MudNavLink Href="/people/create" Icon="@Icons.Material.Filled.PersonAdd">
+            Add Person
+        </MudNavLink>
+    </MudNavGroup>
+    
+    <MudNavGroup Text="Products" Icon="@Icons.Material.Filled.Inventory" Expanded="false">
+        <MudNavLink Href="/products" Icon="@Icons.Material.Filled.Search">
+            Browse Products
+        </MudNavLink>
+        <MudNavLink Href="/products/create" Icon="@Icons.Material.Filled.Add">
+            Add Product
+        </MudNavLink>
+    </MudNavGroup>
+    
+    <MudNavGroup Text="Customers" Icon="@Icons.Material.Filled.Business" Expanded="false">
+        <MudNavLink Href="/customers" Icon="@Icons.Material.Filled.ManageAccounts">
+            Browse Customers
+        </MudNavLink>
+        <MudNavLink Href="/customers/create" Icon="@Icons.Material.Filled.PersonAdd">
+            Add Customer
+        </MudNavLink>
+    </MudNavGroup>
+    
+    <MudNavGroup Text="Sales" Icon="@Icons.Material.Filled.ShoppingCart" Expanded="false">
+        <MudNavLink Href="/sales" Icon="@Icons.Material.Filled.Receipt">
+            Sales Orders
+        </MudNavLink>
+        <MudNavLink Href="/sales/create" Icon="@Icons.Material.Filled.AddShoppingCart">
+            New Order
+        </MudNavLink>
+    </MudNavGroup>
+    
+    <MudDivider Class="my-2" />
+    
+    <MudNavGroup Text="Administration" Icon="@Icons.Material.Filled.Settings" Expanded="false">
+        <MudNavLink Href="/admin/reports" Icon="@Icons.Material.Filled.Analytics">
+            Reports
+        </MudNavLink>
+        <MudNavLink Href="/admin/settings" Icon="@Icons.Material.Filled.Tune">
+            Settings
+        </MudNavLink>
+    </MudNavGroup>
+</MudNavMenu>

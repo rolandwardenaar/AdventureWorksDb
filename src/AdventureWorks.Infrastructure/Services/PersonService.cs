@@ -81,6 +81,95 @@ namespace AdventureWorks.Infrastructure.Services
             return persons.ToListDto();
         }
 
+        public async Task<PagedResult<PersonListDto>> GetPersonsPagedAsync(PersonQueryParameters queryParams)
+        {
+            // Build the query
+            var query = _personRepository.GetQueryable();
+
+            // Apply filters
+            if (!string.IsNullOrWhiteSpace(queryParams.PersonType))
+            {
+                query = query.Where(p => p.PersonType == queryParams.PersonType);
+            }
+
+            if (!string.IsNullOrWhiteSpace(queryParams.FirstName))
+            {
+                query = query.Where(p => p.FirstName.Contains(queryParams.FirstName));
+            }
+
+            if (!string.IsNullOrWhiteSpace(queryParams.LastName))
+            {
+                query = query.Where(p => p.LastName.Contains(queryParams.LastName));
+            }
+
+            if (!string.IsNullOrWhiteSpace(queryParams.SearchTerm))
+            {
+                var searchTerm = queryParams.SearchTerm.ToLower();
+                query = query.Where(p => 
+                    p.FirstName.ToLower().Contains(searchTerm) ||
+                    p.LastName.ToLower().Contains(searchTerm) ||
+                    (p.MiddleName != null && p.MiddleName.ToLower().Contains(searchTerm)) ||
+                    p.EmailAddresses.Any(e => e.EmailAddress1.ToLower().Contains(searchTerm)));
+            }
+
+            if (queryParams.CreatedAfter.HasValue)
+            {
+                query = query.Where(p => p.ModifiedDate >= queryParams.CreatedAfter.Value);
+            }
+
+            if (queryParams.CreatedBefore.HasValue)
+            {
+                query = query.Where(p => p.ModifiedDate <= queryParams.CreatedBefore.Value);
+            }
+
+            // Apply sorting
+            if (!string.IsNullOrWhiteSpace(queryParams.SortBy))
+            {
+                query = queryParams.SortBy.ToLower() switch
+                {
+                    "firstname" => queryParams.SortDescending 
+                        ? query.OrderByDescending(p => p.FirstName)
+                        : query.OrderBy(p => p.FirstName),
+                    "lastname" => queryParams.SortDescending 
+                        ? query.OrderByDescending(p => p.LastName)
+                        : query.OrderBy(p => p.LastName),
+                    "persontype" => queryParams.SortDescending 
+                        ? query.OrderByDescending(p => p.PersonType)
+                        : query.OrderBy(p => p.PersonType),
+                    "modifieddate" => queryParams.SortDescending 
+                        ? query.OrderByDescending(p => p.ModifiedDate)
+                        : query.OrderBy(p => p.ModifiedDate),
+                    _ => queryParams.SortDescending 
+                        ? query.OrderByDescending(p => p.BusinessEntityId)
+                        : query.OrderBy(p => p.BusinessEntityId)
+                };
+            }
+            else
+            {
+                query = query.OrderBy(p => p.LastName).ThenBy(p => p.FirstName);
+            }
+
+            // Get total count before paging
+            var totalCount = await query.CountAsync();
+
+            // Apply paging
+            var items = await query
+                .Skip((queryParams.Page - 1) * queryParams.PageSize)
+                .Take(queryParams.PageSize)
+                .ToListAsync();
+
+            // Map to DTOs
+            var dtoItems = items.ToListDto();
+
+            return new PagedResult<PersonListDto>
+            {
+                Items = dtoItems,
+                TotalCount = totalCount,
+                Page = queryParams.Page,
+                PageSize = queryParams.PageSize
+            };
+        }
+
         #endregion
 
         #region Write Operations

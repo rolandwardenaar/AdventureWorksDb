@@ -9,6 +9,7 @@ namespace AdventureWorks.Core.Interfaces
     {
         // Read operations
         Task<IEnumerable<PersonListDto>> GetAllPersonsAsync();
+        Task<PagedResult<PersonListDto>> GetPersonsPagedAsync(PersonQueryParameters queryParams);
         Task<PersonDto?> GetPersonByIdAsync(int businessEntityId);
         Task<IEnumerable<PersonListDto>> SearchPersonsAsync(string searchTerm);
         Task<IEnumerable<PersonPhoneDto>> GetPersonPhonesAsync(int businessEntityId);

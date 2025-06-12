@@ -25,9 +25,7 @@ namespace AdventureWorks.Infrastructure.Mappings
                 Phones = new List<PersonPhoneDto>(),
                 Addresses = new List<AddressDto>()
             };
-        }
-
-        public static PersonListDto ToListDto(this Person entity)
+        }        public static PersonListDto ToListDto(this Person entity)
         {
             if (entity == null) return null!;
 
@@ -37,7 +35,8 @@ namespace AdventureWorks.Infrastructure.Mappings
                 FirstName = entity.FirstName,
                 LastName = entity.LastName,
                 PersonType = entity.PersonType,
-                PrimaryEmail = entity.EmailAddresses?.FirstOrDefault()?.EmailAddress1
+                PrimaryEmail = entity.EmailAddresses?.FirstOrDefault()?.EmailAddress1,
+                PrimaryPhone = entity.PersonPhones?.FirstOrDefault()?.PhoneNumber
             };
         }
 

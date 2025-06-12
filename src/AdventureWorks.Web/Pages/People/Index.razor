@@ -1,0 +1,451 @@
+@page "/people"
+@inject IPersonService PersonService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>People - AdventureWorks</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudGrid>
+        <!-- Header Section -->
+        <MudItem xs="12">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudGrid AlignItems="Center" Justify="Justify.SpaceBetween">
+                    <MudItem xs="12" md="6">
+                        <MudText Typo="Typo.h4" Color="Color.Primary">
+                            <MudIcon Icon="@Icons.Material.Filled.People" Class="mr-3" />
+                            People Management
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Manage contacts, employees, and business relationships
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="6" Class="d-flex justify-end gap-2">
+                        <MudButton Variant="Variant.Outlined" 
+                                   Color="Color.Primary" 
+                                   StartIcon="@Icons.Material.Filled.Download"
+                                   OnClick="ExportData">
+                            Export
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled" 
+                                   Color="Color.Primary" 
+                                   StartIcon="@Icons.Material.Filled.PersonAdd"
+                                   Href="/people/create">
+                            Add Person
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+
+        <!-- Advanced Search Section -->
+        <MudItem xs="12">
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudExpansionPanels>
+                    <MudExpansionPanel Text="Advanced Search & Filters">
+                        <MudGrid>
+                            <MudItem xs="12" md="4">
+                                <MudTextField @bind-Value="queryParams.SearchTerm" 
+                                              Label="Global Search" 
+                                              Variant="Variant.Outlined"
+                                              Adornment="Adornment.End"
+                                              AdornmentIcon="@Icons.Material.Filled.Search"
+                                              HelperText="Search in name, email, phone..."
+                                              Clearable="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudSelect @bind-Value="queryParams.PersonType" 
+                                           Label="Person Type" 
+                                           Variant="Variant.Outlined"
+                                           Clearable="true">
+                                    <MudSelectItem Value="@("IN")">Individual</MudSelectItem>
+                                    <MudSelectItem Value="@("EM")">Employee</MudSelectItem>
+                                    <MudSelectItem Value="@("SP")">Sales Person</MudSelectItem>
+                                    <MudSelectItem Value="@("SC")">Store Contact</MudSelectItem>
+                                    <MudSelectItem Value="@("VC")">Vendor Contact</MudSelectItem>
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudTextField @bind-Value="queryParams.FirstName" 
+                                              Label="First Name" 
+                                              Variant="Variant.Outlined"
+                                              Clearable="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudTextField @bind-Value="queryParams.LastName" 
+                                              Label="Last Name" 
+                                              Variant="Variant.Outlined"
+                                              Clearable="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudTextField @bind-Value="queryParams.Email" 
+                                              Label="Email Address" 
+                                              Variant="Variant.Outlined"
+                                              Clearable="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudDateRangePicker @bind-DateRange="dateRange" 
+                                                    Label="Modified Date Range"
+                                                    Variant="Variant.Outlined"
+                                                    Clearable="true" />
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudGrid>
+                                    <MudItem xs="12" md="6">
+                                        <MudButton Variant="Variant.Filled" 
+                                                   Color="Color.Primary" 
+                                                   StartIcon="@Icons.Material.Filled.Search"
+                                                   OnClick="ApplyFilters"
+                                                   FullWidth="true">
+                                            Apply Filters
+                                        </MudButton>
+                                    </MudItem>
+                                    <MudItem xs="12" md="6">
+                                        <MudButton Variant="Variant.Outlined" 
+                                                   Color="Color.Secondary" 
+                                                   StartIcon="@Icons.Material.Filled.Clear"
+                                                   OnClick="ClearFilters"
+                                                   FullWidth="true">
+                                            Clear All
+                                        </MudButton>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudItem>
+                        </MudGrid>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            </MudPaper>
+        </MudItem>
+
+        <!-- Data Grid Section -->
+        <MudItem xs="12">
+            <MudPaper Class="pa-4" Elevation="1">
+                @if (isLoading)
+                {
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+                    <MudText Align="Align.Center">Loading people...</MudText>
+                }
+                else
+                {                    <MudDataGrid @ref="dataGrid"
+                                 T="PersonListDto"
+                                 ServerData="LoadServerData"
+                                 Filterable="false"
+                                 Sortable="true"
+                                 Hover="true"
+                                 ReadOnly="true"
+                                 Dense="false"
+                                 Loading="isLoading"
+                                 LoadingProgressColor="Color.Info"
+                                 Virtualize="true"
+                                 FixedHeader="true"
+                                 Height="600px">
+                        
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">People Directory</MudText>
+                            <MudSpacer />
+                            <MudText Typo="Typo.body2" Class="mr-4">
+                                Total: @(pagedResult?.TotalCount ?? 0) people
+                            </MudText>
+                        </ToolBarContent>
+                        
+                        <Columns>
+                            <PropertyColumn Property="x => x.BusinessEntityId" 
+                                            Title="ID" 
+                                            Sortable="true"
+                                            Filterable="false"
+                                            HeaderStyle="width: 80px;" />                            <PropertyColumn Property="x => x.FullName" 
+                                            Title="Full Name" 
+                                            Sortable="true" />
+                            
+                            <PropertyColumn Property="x => x.PersonType" 
+                                            Title="Type" 
+                                            Sortable="true"
+                                            HeaderStyle="width: 140px;">
+                                <CellTemplate>
+                                    <MudChip Color="GetPersonTypeColor(context.Item.PersonType)" 
+                                             Size="Size.Small" 
+                                             Label="true"
+                                             Variant="Variant.Filled">
+                                        @GetPersonTypeText(context.Item.PersonType)
+                                    </MudChip>
+                                </CellTemplate>
+                            </PropertyColumn>
+                            
+                            <PropertyColumn Property="x => x.PrimaryEmail" 
+                                            Title="Email" 
+                                            Sortable="true">
+                                <CellTemplate>
+                                    @if (!string.IsNullOrEmpty(context.Item.PrimaryEmail))
+                                    {
+                                        <MudLink Href="@($"mailto:{context.Item.PrimaryEmail}")" 
+                                                 Color="Color.Primary">
+                                            @context.Item.PrimaryEmail
+                                        </MudLink>
+                                    }
+                                    else
+                                    {
+                                        <MudText Color="Color.Secondary">No email</MudText>
+                                    }
+                                </CellTemplate>
+                            </PropertyColumn>
+                              <PropertyColumn Property="x => x.PrimaryPhone" 
+                                            Title="Phone" 
+                                            Sortable="false"
+                                            HeaderStyle="width: 150px;">
+                                <CellTemplate>
+                                    @if (!string.IsNullOrEmpty(context.Item.PrimaryPhone))
+                                    {
+                                        <MudText>@context.Item.PrimaryPhone</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Color="Color.Secondary">No phone</MudText>
+                                    }
+                                </CellTemplate>
+                            </PropertyColumn>
+                            
+                            <TemplateColumn Title="Actions" 
+                                            Sortable="false"
+                                            HeaderStyle="width: 160px;">
+                                <CellTemplate>
+                                    <MudButtonGroup Color="Color.Primary" 
+                                                    Variant="Variant.Outlined" 
+                                                    Size="Size.Small">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                                       Color="Color.Info"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => ViewPerson(context.Item.BusinessEntityId))"
+                                                       Title="View Details" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                       Color="Color.Warning"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => EditPerson(context.Item.BusinessEntityId))"
+                                                       Title="Edit Person" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Color="Color.Error"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => ConfirmDelete(context.Item))"
+                                                       Title="Delete Person" />
+                                    </MudButtonGroup>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        
+                        <PagerContent>
+                            <MudDataGridPager T="PersonListDto" 
+                                              InfoFormat="{first_item}-{last_item} of {all_items}"
+                                              RowsPerPageString="Rows per page:" />
+                        </PagerContent>
+                        
+                        <NoRecordsContent>
+                            <MudAlert Severity="Severity.Info" Class="my-4">
+                                <MudText>No people found matching your search criteria.</MudText>
+                                <MudButton Variant="Variant.Text" 
+                                           Color="Color.Primary"
+                                           OnClick="ClearFilters"
+                                           StartIcon="@Icons.Material.Filled.Clear">
+                                    Clear Filters
+                                </MudButton>
+                            </MudAlert>
+                        </NoRecordsContent>
+                    </MudDataGrid>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private MudDataGrid<PersonListDto>? dataGrid;
+    private PagedResult<PersonListDto>? pagedResult;
+    private PersonQueryParameters queryParams = new();
+    private DateRange? dateRange;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Set default page size
+        queryParams.PageSize = 25;
+        await base.OnInitializedAsync();
+    }    private async Task<GridData<PersonListDto>> LoadServerData(GridState<PersonListDto> state)
+    {
+        isLoading = true;
+        
+        try
+        {
+            // Map grid state to query parameters
+            queryParams.Page = state.Page + 1; // MudBlazor uses 0-based paging
+            queryParams.PageSize = state.PageSize;
+            
+            // Handle sorting
+            if (state.SortDefinitions?.Any() == true)
+            {
+                var sortDef = state.SortDefinitions.First();
+                queryParams.SortBy = sortDef.SortBy;
+                queryParams.SortDescending = sortDef.Descending;
+            }
+
+            // Apply date range filter
+            if (dateRange?.Start != null)
+                queryParams.CreatedAfter = dateRange.Start;
+            if (dateRange?.End != null)
+                queryParams.CreatedBefore = dateRange.End;
+
+            // Load data
+            pagedResult = await PersonService.GetPersonsPagedAsync(queryParams);
+            
+            return new GridData<PersonListDto>
+            {
+                Items = pagedResult.Items,
+                TotalItems = pagedResult.TotalCount
+            };
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading people: {ex.Message}", Severity.Error);
+            return new GridData<PersonListDto>
+            {
+                Items = Enumerable.Empty<PersonListDto>(),
+                TotalItems = 0
+            };
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        // Apply date range
+        if (dateRange?.Start != null)
+            queryParams.CreatedAfter = dateRange.Start;
+        if (dateRange?.End != null)
+            queryParams.CreatedBefore = dateRange.End;
+
+        // Reset to first page when applying filters
+        queryParams.Page = 1;
+        
+        // Reload the grid
+        if (dataGrid != null)
+        {
+            await dataGrid.ReloadServerData();
+        }
+    }
+
+    private async Task ClearFilters()
+    {
+        queryParams = new PersonQueryParameters { PageSize = queryParams.PageSize };
+        dateRange = null;
+        
+        if (dataGrid != null)
+        {
+            await dataGrid.ReloadServerData();
+        }
+    }
+
+    private async Task ExportData()
+    {
+        try
+        {
+            isLoading = true;
+            
+            // Get all data for export (with current filters but no paging)
+            var exportParams = new PersonQueryParameters
+            {
+                SearchTerm = queryParams.SearchTerm,
+                PersonType = queryParams.PersonType,
+                FirstName = queryParams.FirstName,
+                LastName = queryParams.LastName,
+                Email = queryParams.Email,
+                CreatedAfter = queryParams.CreatedAfter,
+                CreatedBefore = queryParams.CreatedBefore,
+                SortBy = queryParams.SortBy,
+                SortDescending = queryParams.SortDescending,
+                Page = 1,
+                PageSize = int.MaxValue // Get all records
+            };
+            
+            var exportResult = await PersonService.GetPersonsPagedAsync(exportParams);
+            
+            // For now, just show success message
+            // In a real app, you'd generate CSV/Excel here
+            Snackbar.Add($"Export would contain {exportResult.TotalCount} records", Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Export failed: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ViewPerson(int businessEntityId)
+    {
+        Navigation.NavigateTo($"/people/{businessEntityId}");
+    }
+
+    private void EditPerson(int businessEntityId)
+    {
+        Navigation.NavigateTo($"/people/{businessEntityId}/edit");
+    }    private async Task ConfirmDelete(PersonListDto person)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Confirm Delete",
+            $"Are you sure you want to delete {person.FullName}?",
+            yesText: "Delete", 
+            cancelText: "Cancel");
+
+        if (result == true)
+        {
+            await DeletePerson(person.BusinessEntityId);
+        }
+    }
+
+    private async Task DeletePerson(int businessEntityId)
+    {
+        try
+        {
+            var success = await PersonService.DeletePersonAsync(businessEntityId);
+            if (success)
+            {
+                Snackbar.Add("Person deleted successfully", Severity.Success);
+                if (dataGrid != null)
+                {
+                    await dataGrid.ReloadServerData();
+                }
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete person", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error deleting person: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private Color GetPersonTypeColor(string personType) => personType switch
+    {
+        "IN" => Color.Primary,
+        "EM" => Color.Success,
+        "SP" => Color.Warning,
+        "SC" => Color.Info,
+        "VC" => Color.Secondary,
+        _ => Color.Default
+    };
+
+    private string GetPersonTypeText(string personType) => personType switch
+    {
+        "IN" => "Individual",
+        "EM" => "Employee",
+        "SP" => "Sales Person",
+        "SC" => "Store Contact",
+        "VC" => "Vendor Contact",
+        _ => personType
+    };
+}

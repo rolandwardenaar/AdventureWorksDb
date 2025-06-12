@@ -13,4 +13,7 @@ public interface IPersonRepository : IGenericRepository<Person>
     Task<Person?> GetByIdWithDetailsAsync(int businessEntityId);
     Task<IEnumerable<Person>> SearchPersonsAsync(string searchTerm);
     Task<IEnumerable<Person>> GetPersonsByTypeAsync(string personType);
+    
+    // For advanced querying
+    IQueryable<Person> GetQueryable();
 }

@@ -90,4 +90,16 @@ public class PersonRepository : GenericRepository<Person>, IPersonRepository
             .ThenBy(p => p.FirstName)
             .ToListAsync();
     }
+
+    public IQueryable<Person> GetQueryable()
+    {
+        return _dbSet
+            .Include(p => p.EmailAddresses)
+            .Include(p => p.PersonPhones)
+            .Include(p => p.BusinessEntity)
+                .ThenInclude(be => be.BusinessEntityAddresses)
+                    .ThenInclude(bea => bea.Address)
+                        .ThenInclude(a => a.StateProvince)
+                            .ThenInclude(sp => sp.CountryRegionCodeNavigation);
+    }
 }

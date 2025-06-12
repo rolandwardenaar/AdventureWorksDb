@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using AdventureWorks.Infrastructure.Data.Entities;
+using AdventureWorks.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace AdventureWorks.Infrastructure.Data;

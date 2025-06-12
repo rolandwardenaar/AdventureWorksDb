@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using AdventureWorks.Core.Interfaces;
 using AdventureWorks.Infrastructure.Data;
+using System.Linq.Expressions;
 
 namespace AdventureWorks.Infrastructure.Repositories;
 
@@ -40,16 +41,18 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         return result.Entity;
     }
 
-    public virtual async Task UpdateAsync(T entity)
+    public virtual async Task<T> UpdateAsync(T entity)
     {
         _dbSet.Update(entity);
         await _context.SaveChangesAsync();
+        return entity;
     }
 
-    public virtual async Task DeleteAsync(T entity)
+    public virtual async Task<bool> DeleteAsync(T entity)
     {
         _dbSet.Remove(entity);
         await _context.SaveChangesAsync();
+        return true;
     }
 
     public virtual async Task<bool> ExistsAsync(int id)
@@ -61,5 +64,20 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     public virtual async Task<int> CountAsync()
     {
         return await _dbSet.CountAsync();
+    }
+
+    public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.Where(predicate).ToListAsync();
+    }
+
+    public virtual async Task<T?> FindFirstAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.Where(predicate).FirstOrDefaultAsync();
+    }
+
+    public virtual async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.AnyAsync(predicate);
     }
 }

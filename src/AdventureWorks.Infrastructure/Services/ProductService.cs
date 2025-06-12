@@ -155,12 +155,10 @@ namespace AdventureWorks.Infrastructure.Services
             // Check if product has any sales orders
             var hasOrders = await _productRepository.HasOrdersAsync(productId);
             return !hasOrders;
-        }
-
-        public async Task<decimal> CalculateStandardCostAsync(decimal listPrice)
+        }        public Task<decimal> CalculateStandardCostAsync(decimal listPrice)
         {
             // Business rule: Standard cost is typically 60% of list price
-            return listPrice * 0.6m;
+            return Task.FromResult(listPrice * 0.6m);
         }
 
         public async Task<bool> IsProductInStockAsync(int productId)

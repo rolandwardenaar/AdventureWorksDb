@@ -8,4 +8,9 @@ public interface ICustomerRepository : IGenericRepository<Customer>
     Task<Customer?> GetByAccountNumberAsync(string accountNumber);
     Task<IEnumerable<Customer>> GetIndividualCustomersAsync();
     Task<IEnumerable<Customer>> GetStoreCustomersAsync();
+    
+    // Additional methods needed for CustomerService
+    Task<IEnumerable<Customer>> SearchCustomersAsync(string searchTerm);
+    Task<Customer?> GetLastCustomerAsync();
+    Task<IEnumerable<Customer>> GetTopCustomersAsync(int count);
 }

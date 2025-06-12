@@ -60,4 +60,34 @@ public class CustomerRepository : GenericRepository<Customer>, ICustomerReposito
             .Include(c => c.Territory)
             .FirstOrDefaultAsync(c => c.CustomerId == id);
     }
+
+    public async Task<IEnumerable<Customer>> SearchCustomersAsync(string searchTerm)
+    {
+        return await _dbSet
+            .Include(c => c.Person)
+            .Include(c => c.Store)
+            .Where(c => (c.Person != null && (c.Person.FirstName.Contains(searchTerm) || c.Person.LastName.Contains(searchTerm))) ||
+                       (c.Store != null && c.Store.Name.Contains(searchTerm)) ||
+                       c.AccountNumber.Contains(searchTerm))
+            .OrderBy(c => c.AccountNumber)
+            .ToListAsync();
+    }
+
+    public async Task<Customer?> GetLastCustomerAsync()
+    {
+        return await _dbSet
+            .OrderByDescending(c => c.CustomerId)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<IEnumerable<Customer>> GetTopCustomersAsync(int count)
+    {
+        return await _dbSet
+            .Include(c => c.Person)
+            .Include(c => c.Store)
+            .Include(c => c.SalesOrderHeaders)
+            .OrderByDescending(c => c.SalesOrderHeaders.Sum(o => o.TotalDue))
+            .Take(count)
+            .ToListAsync();
+    }
 }

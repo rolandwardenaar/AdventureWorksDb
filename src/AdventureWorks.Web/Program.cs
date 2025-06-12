@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using AdventureWorks.Web.Data;
 using AdventureWorks.Infrastructure.Data;
+using AdventureWorks.Infrastructure.Extensions;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,9 +15,8 @@ builder.Services.AddServerSideBlazor();
 // Add MudBlazor services
 builder.Services.AddMudServices();
 
-// Add Entity Framework
-builder.Services.AddDbContext<AdventureWorksDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Add Infrastructure services (includes EF, Repositories, and Business Services)
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 // Temporary service - zal later vervangen worden
 builder.Services.AddSingleton<WeatherForecastService>();

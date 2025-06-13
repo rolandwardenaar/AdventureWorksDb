@@ -33,12 +33,10 @@ namespace AdventureWorks.Infrastructure.Services
         {
             var persons = await _personRepository.GetAllAsync();
             return persons.ToListDto();
-        }
-
-        public async Task<PersonDto?> GetPersonByIdAsync(int businessEntityId)
+        }        public async Task<PersonDetailDto?> GetPersonByIdAsync(int businessEntityId)
         {
             var person = await _personRepository.GetByIdWithDetailsAsync(businessEntityId);
-            return person?.ToDto();
+            return person?.ToDetailDto();
         }
 
         public async Task<IEnumerable<PersonListDto>> SearchPersonsAsync(string searchTerm)
@@ -174,22 +172,22 @@ namespace AdventureWorks.Infrastructure.Services
 
         #region Write Operations
 
-        public async Task<PersonDto> CreatePersonAsync(PersonCreateDto personDto)
+        public async Task<PersonDetailDto> CreatePersonAsync(PersonCreateDto personDto)
         {
             var person = personDto.ToEntity();
             var createdPerson = await _personRepository.AddAsync(person);
-            return createdPerson.ToDto();
+            return createdPerson.ToDetailDto();
         }
 
-        public async Task<PersonDto> UpdatePersonAsync(PersonUpdateDto personDto)
+        public async Task<PersonDetailDto> UpdatePersonAsync(int businessEntityId, PersonUpdateDto personDto)
         {
-            var existingPerson = await _personRepository.GetByIdAsync(personDto.BusinessEntityId);
+            var existingPerson = await _personRepository.GetByIdAsync(businessEntityId);
             if (existingPerson == null)
-                throw new ArgumentException($"Person with ID {personDto.BusinessEntityId} not found.");
+                throw new ArgumentException($"Person with ID {businessEntityId} not found.");
 
             personDto.UpdateEntity(existingPerson);
             var updatedPerson = await _personRepository.UpdateAsync(existingPerson);
-            return updatedPerson.ToDto();
+            return updatedPerson.ToDetailDto();
         }
 
         public async Task<bool> DeletePersonAsync(int businessEntityId)

@@ -6,19 +6,18 @@ namespace AdventureWorks.Core.Interfaces
     /// Service interface for Person business operations
     /// </summary>
     public interface IPersonService
-    {
-        // Read operations
+    {        // Read operations
         Task<IEnumerable<PersonListDto>> GetAllPersonsAsync();
         Task<PagedResult<PersonListDto>> GetPersonsPagedAsync(PersonQueryParameters queryParams);
-        Task<PersonDto?> GetPersonByIdAsync(int businessEntityId);
+        Task<PersonDetailDto?> GetPersonByIdAsync(int businessEntityId);
         Task<IEnumerable<PersonListDto>> SearchPersonsAsync(string searchTerm);
         Task<IEnumerable<PersonPhoneDto>> GetPersonPhonesAsync(int businessEntityId);
         Task<IEnumerable<EmailAddressDto>> GetPersonEmailsAsync(int businessEntityId);
         Task<IEnumerable<BusinessEntityAddressDto>> GetPersonAddressesAsync(int businessEntityId);
 
         // Write operations
-        Task<PersonDto> CreatePersonAsync(PersonCreateDto personDto);
-        Task<PersonDto> UpdatePersonAsync(PersonUpdateDto personDto);
+        Task<PersonDetailDto> CreatePersonAsync(PersonCreateDto personDto);
+        Task<PersonDetailDto> UpdatePersonAsync(int businessEntityId, PersonUpdateDto personDto);
         Task<bool> DeletePersonAsync(int businessEntityId);
 
         // Contact information operations

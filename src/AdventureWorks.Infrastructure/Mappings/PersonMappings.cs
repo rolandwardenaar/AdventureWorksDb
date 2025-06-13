@@ -24,8 +24,7 @@ namespace AdventureWorks.Infrastructure.Mappings
                 EmailAddresses = new List<string>(),
                 Phones = new List<PersonPhoneDto>(),
                 Addresses = new List<AddressDto>()
-            };
-        }        public static PersonListDto ToListDto(this Person entity)
+            };        }        public static PersonListDto ToListDto(this Person entity)
         {
             if (entity == null) return null!;
 
@@ -37,6 +36,23 @@ namespace AdventureWorks.Infrastructure.Mappings
                 PersonType = entity.PersonType,
                 PrimaryEmail = entity.EmailAddresses?.FirstOrDefault()?.EmailAddress1,
                 PrimaryPhone = entity.PersonPhones?.FirstOrDefault()?.PhoneNumber
+            };
+        }        public static PersonDetailDto ToDetailDto(this Person entity)
+        {
+            if (entity == null) return null!;
+
+            return new PersonDetailDto
+            {
+                BusinessEntityId = entity.BusinessEntityId,
+                PersonType = entity.PersonType,
+                Title = entity.Title,
+                FirstName = entity.FirstName,
+                MiddleName = entity.MiddleName,
+                LastName = entity.LastName,
+                Suffix = entity.Suffix,
+                EmailPromotion = entity.EmailPromotion,
+                Rowguid = entity.Rowguid,
+                ModifiedDate = entity.ModifiedDate
             };
         }
 

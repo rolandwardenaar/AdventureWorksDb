@@ -1,0 +1,400 @@
+@page "/people/create"
+@inject IPersonService PersonService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Add New Person - AdventureWorks</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-1 mobile-first-container">
+    <MudGrid Spacing="1">
+        <!-- Header Section -->
+        <MudItem xs="12">
+            <MudPaper Class="pa-2 pa-sm-3" Elevation="1">
+                <MudStack Spacing="1">
+                    <MudBreadcrumbs Items="breadcrumbItems" Class="responsive-breadcrumbs" />
+                    <MudStack Row="false" Class="header-content">
+                        <MudText Typo="Typo.h6" Color="Color.Primary" Class="responsive-title">
+                            <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-1" Size="Size.Small" />
+                            Add New Person
+                        </MudText>
+                        <MudStack Row Spacing="1" Justify="Justify.Center" Class="action-buttons">
+                            <MudButton Variant="Variant.Outlined" 
+                                       Color="Color.Secondary" 
+                                       Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                                       Href="/people"
+                                       Class="responsive-btn">
+                                <MudText Class="d-none d-sm-inline">Back</MudText>
+                                <MudText Class="d-inline d-sm-none">←</MudText>
+                            </MudButton>
+                        </MudStack>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        <!-- Form Section -->
+        <MudItem xs="12">
+            <MudPaper Class="pa-3" Elevation="1">                <EditForm Model="@createDto" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />                    
+                    <MudGrid Spacing="1">
+                        <!-- Personal Information Section -->
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-1">
+                                <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-1" Size="Size.Small" />
+                                Personal Information
+                            </MudText>
+                            <MudDivider Class="mb-2" />
+                        </MudItem>                        <!-- Person Type -->
+                        <MudItem xs="12" md="6">
+                            <MudSelect @bind-Value="createDto.PersonType" 
+                                       Label="Person Type" 
+                                       Variant="Variant.Outlined"
+                                       Required="true"
+                                       Class="compact-field"
+                                       Dense="true">
+                                <MudSelectItem Value="@("IN")">Individual Customer</MudSelectItem>
+                                <MudSelectItem Value="@("EM")">Employee</MudSelectItem>
+                                <MudSelectItem Value="@("SP")">Sales Person</MudSelectItem>
+                                <MudSelectItem Value="@("SC")">Store Contact</MudSelectItem>
+                                <MudSelectItem Value="@("VC")">Vendor Contact</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+
+                        <!-- Title -->
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="createDto.Title" 
+                                          Label="Title" 
+                                          Variant="Variant.Outlined"
+                                          Class="compact-field"
+                                          Dense="true"
+                                          MaxLength="8" />
+                        </MudItem>
+
+                        <!-- First Name -->
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="createDto.FirstName" 
+                                          Label="First Name" 
+                                          Variant="Variant.Outlined"
+                                          Required="true"
+                                          Class="compact-field"
+                                          Dense="true"
+                                          MaxLength="50" />
+                        </MudItem>
+
+                        <!-- Middle Name -->
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="createDto.MiddleName" 
+                                          Label="Middle Name" 
+                                          Variant="Variant.Outlined"
+                                          Class="compact-field"
+                                          Dense="true"
+                                          MaxLength="50" />
+                        </MudItem>
+
+                        <!-- Last Name -->
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="createDto.LastName" 
+                                          Label="Last Name" 
+                                          Variant="Variant.Outlined"
+                                          Required="true"
+                                          Class="compact-field"
+                                          Dense="true"
+                                          MaxLength="50" />
+                        </MudItem>
+
+                        <!-- Suffix -->
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="createDto.Suffix" 
+                                          Label="Suffix" 
+                                          Variant="Variant.Outlined"
+                                          Class="compact-field"
+                                          Dense="true"
+                                          MaxLength="10" />
+                        </MudItem>
+
+                        <!-- Email Promotion -->
+                        <MudItem xs="12" md="6">
+                            <MudSelect @bind-Value="createDto.EmailPromotion" 
+                                       Label="Email Promotion" 
+                                       Variant="Variant.Outlined"
+                                       Class="compact-field"
+                                       Dense="true">
+                                <MudSelectItem Value="0">None</MudSelectItem>
+                                <MudSelectItem Value="1">AdventureWorks only</MudSelectItem>
+                                <MudSelectItem Value="2">AdventureWorks and partners</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+
+                        <!-- Demographics -->
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="createDto.Demographics" 
+                                          Label="Demographics (XML)" 
+                                          Variant="Variant.Outlined"
+                                          Lines="2"
+                                          Class="compact-field" />
+                        </MudItem>
+
+                        <!-- Form Actions -->
+                        <MudItem xs="12">
+                            <MudDivider Class="my-2" />
+                            <MudStack Row Spacing="1" Justify="Justify.FlexEnd">
+                                <MudButton Variant="Variant.Outlined" 
+                                           Color="Color.Secondary" 
+                                           StartIcon="@Icons.Material.Filled.Cancel"
+                                           OnClick="Cancel"
+                                           Size="Size.Small"
+                                           Disabled="@isSubmitting">
+                                    Cancel
+                                </MudButton>
+                                <MudButton ButtonType="ButtonType.Submit" 
+                                           Variant="Variant.Filled" 
+                                           Color="Color.Primary" 
+                                           StartIcon="@Icons.Material.Filled.Save"
+                                           Size="Size.Small"
+                                           Disabled="@isSubmitting">
+                                    @if (isSubmitting)
+                                    {
+                                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                        <MudText Class="ms-2">Creating...</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText>Create</MudText>
+                                    }
+                                </MudButton>
+                            </MudStack>
+                        </MudItem>
+                    </MudGrid>
+                </EditForm>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+<style>
+    /* Mobile-First Design */
+    .mobile-first-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0 4px;
+    }
+    
+    /* Responsive Breadcrumbs */
+    .responsive-breadcrumbs .mud-breadcrumb-item {
+        font-size: 0.6rem;
+    }
+    
+    /* Header Content - Stack on Mobile */
+    .header-content {
+        gap: 0.5rem;
+    }
+    
+    /* Responsive Title */
+    .responsive-title {
+        font-size: 1rem;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+    
+    /* Action Buttons - Mobile First */
+    .action-buttons {
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .responsive-btn {
+        min-width: 44px; /* Touch-friendly minimum */
+        padding: 4px 8px;
+    }
+    
+    /* Compact Fields - Mobile Optimized */
+    .compact-field .mud-input-control {
+        margin-bottom: 2px;
+    }
+    
+    .compact-field .mud-input-control .mud-input {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+        min-height: 36px;
+    }
+    
+    .compact-field .mud-input-label {
+        font-size: 0.7rem;
+    }
+    
+    .compact-field .mud-select-input {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+        min-height: 36px;
+    }
+    
+    /* Small Screens (≥480px) */
+    @@media (min-width: 480px) {
+        .mobile-first-container {
+            padding: 0 8px;
+        }
+        
+        .responsive-breadcrumbs .mud-breadcrumb-item {
+            font-size: 0.7rem;
+        }
+        
+        .responsive-title {
+            font-size: 1.1rem;
+        }
+        
+        .compact-field .mud-input-control .mud-input {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+            min-height: 38px;
+        }
+        
+        .compact-field .mud-input-label {
+            font-size: 0.75rem;
+        }
+        
+        .compact-field .mud-select-input {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+            min-height: 38px;
+        }
+    }
+    
+    /* Medium Screens (≥768px) */
+    @@media (min-width: 768px) {
+        .mobile-first-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 12px;
+        }
+        
+        .header-content {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .action-buttons {
+            margin-top: 0;
+        }
+        
+        .responsive-title {
+            font-size: 1.25rem;
+        }
+        
+        .responsive-breadcrumbs .mud-breadcrumb-item {
+            font-size: 0.75rem;
+        }
+        
+        .compact-field .mud-input-control .mud-input {
+            padding: 8px 12px;
+            font-size: 0.875rem;
+            min-height: 40px;
+        }
+        
+        .compact-field .mud-select-input {
+            padding: 8px 12px;
+            font-size: 0.875rem;
+            min-height: 40px;
+        }
+    }
+    
+    /* Large Screens (≥1024px) */
+    @@media (min-width: 1024px) {
+        .mobile-first-container {
+            max-width: 960px;
+        }
+        
+        .responsive-title {
+            font-size: 1.5rem;
+        }
+    }
+    
+    /* Extra Large Screens (≥1200px) */
+    @@media (min-width: 1200px) {
+        .mobile-first-container {
+            max-width: 1140px;
+        }
+        
+        .compact-field .mud-input-control .mud-input {
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            min-height: 42px;
+        }
+        
+        .compact-field .mud-select-input {
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            min-height: 42px;
+        }
+    }
+    
+    /* Touch Optimizations */
+    @@media (pointer: coarse) {
+        .responsive-btn {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        .compact-field .mud-input-control .mud-input {
+            min-height: 44px;
+        }
+        
+        .compact-field .mud-select-input {
+            min-height: 44px;
+        }
+    }
+</style>
+
+@code {
+    private PersonCreateDto createDto = new();
+    private bool isSubmitting = false;
+    
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem("Home", href: "/"),
+        new BreadcrumbItem("People", href: "/people"),
+        new BreadcrumbItem("Add New", href: null, disabled: true)
+    };
+
+    protected override void OnInitialized()
+    {
+        // Set default values
+        createDto.PersonType = "IN"; // Individual by default
+        createDto.EmailPromotion = 0; // No promotions by default
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+        
+        try
+        {
+            var result = await PersonService.CreatePersonAsync(createDto);
+            
+            if (result != null)
+            {
+                Snackbar.Add($"Person '{result.FullName}' created successfully!", Severity.Success);
+                Navigation.NavigateTo($"/people/{result.BusinessEntityId}");
+            }
+            else
+            {
+                Snackbar.Add("Failed to create person. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error creating person: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/people");
+    }
+}

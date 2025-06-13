@@ -130,8 +130,11 @@
                 {                    <MudDataGrid @ref="dataGrid"
                                  T="PersonListDto"
                                  ServerData="LoadServerData"
-                                 Filterable="false"
+                                 Filterable="true"
+                                 FilterMode="DataGridFilterMode.ColumnFilterMenu"
+                                 QuickFilter="@_quickFilterFunc"
                                  Sortable="true"
+                                 SortMode="SortMode.Multiple"
                                  Hover="true"
                                  ReadOnly="true"
                                  Dense="false"
@@ -139,28 +142,55 @@
                                  LoadingProgressColor="Color.Info"
                                  Virtualize="true"
                                  FixedHeader="true"
-                                 Height="600px">
-                        
-                        <ToolBarContent>
+                                 Height="600px"
+                                 RowsPerPage="25"
+                                 RowsPerPageOptions="@(new int[] { 10, 25, 50, 100 })">
+                          <ToolBarContent>
                             <MudText Typo="Typo.h6">People Directory</MudText>
                             <MudSpacer />
+                            
+                            <!-- Quick Search Field -->
+                            <MudTextField @bind-Value="_searchString" 
+                                          Placeholder="Quick search..." 
+                                          Adornment="Adornment.Start" 
+                                          AdornmentIcon="@Icons.Material.Filled.Search" 
+                                          IconSize="Size.Medium" 
+                                          Class="mt-0 mr-4"
+                                          Style="max-width: 300px;"
+                                          DebounceInterval="300"
+                                          Clearable="true" />
+                            
                             <MudText Typo="Typo.body2" Class="mr-4">
                                 Total: @(pagedResult?.TotalCount ?? 0) people
                             </MudText>
+                            
+                            <!-- Filter Status -->
+                            @if (HasActiveFilters())
+                            {
+                                <MudChip Color="Color.Info" 
+                                         Size="Size.Small" 
+                                         OnClose="ClearFilters"
+                                         Class="mr-2">
+                                    @GetActiveFiltersCount() filters active
+                                </MudChip>
+                            }
                         </ToolBarContent>
-                        
-                        <Columns>
+                          <Columns>
                             <PropertyColumn Property="x => x.BusinessEntityId" 
                                             Title="ID" 
                                             Sortable="true"
-                                            Filterable="false"
-                                            HeaderStyle="width: 80px;" />                            <PropertyColumn Property="x => x.FullName" 
+                                            Filterable="true"
+                                            HeaderStyle="width: 80px;" />
+                                            
+                            <PropertyColumn Property="x => x.FullName" 
                                             Title="Full Name" 
-                                            Sortable="true" />
+                                            Sortable="true"
+                                            Filterable="true" />
                             
                             <PropertyColumn Property="x => x.PersonType" 
                                             Title="Type" 
                                             Sortable="true"
+                                            Filterable="true"
                                             HeaderStyle="width: 140px;">
                                 <CellTemplate>
                                     <MudChip Color="GetPersonTypeColor(context.Item.PersonType)" 
@@ -174,7 +204,8 @@
                             
                             <PropertyColumn Property="x => x.PrimaryEmail" 
                                             Title="Email" 
-                                            Sortable="true">
+                                            Sortable="true"
+                                            Filterable="true">
                                 <CellTemplate>
                                     @if (!string.IsNullOrEmpty(context.Item.PrimaryEmail))
                                     {
@@ -189,9 +220,11 @@
                                     }
                                 </CellTemplate>
                             </PropertyColumn>
-                              <PropertyColumn Property="x => x.PrimaryPhone" 
+                              
+                            <PropertyColumn Property="x => x.PrimaryPhone" 
                                             Title="Phone" 
-                                            Sortable="false"
+                                            Sortable="true"
+                                            Filterable="true"
                                             HeaderStyle="width: 150px;">
                                 <CellTemplate>
                                     @if (!string.IsNullOrEmpty(context.Item.PrimaryPhone))
@@ -207,6 +240,7 @@
                             
                             <TemplateColumn Title="Actions" 
                                             Sortable="false"
+                                            Filterable="false"
                                             HeaderStyle="width: 160px;">
                                 <CellTemplate>
                                     <MudButtonGroup Color="Color.Primary" 
@@ -231,11 +265,13 @@
                                 </CellTemplate>
                             </TemplateColumn>
                         </Columns>
-                        
-                        <PagerContent>
+                          <PagerContent>
                             <MudDataGridPager T="PersonListDto" 
-                                              InfoFormat="{first_item}-{last_item} of {all_items}"
-                                              RowsPerPageString="Rows per page:" />
+                                              InfoFormat="{first_item}-{last_item} van {all_items} personen"
+                                              RowsPerPageString="Items per pagina:"
+                                              PageSizeSelector="true"
+                                              ShowFirstLast="true"
+                                              ShowPageNumbers="true" />
                         </PagerContent>
                         
                         <NoRecordsContent>
@@ -262,6 +298,25 @@
     private PersonQueryParameters queryParams = new();
     private DateRange? dateRange;
     private bool isLoading = false;
+    private string _searchString = "";
+
+    // Quick filter function for real-time search
+    private Func<PersonListDto, bool> _quickFilterFunc => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.FullName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        if (x.PrimaryEmail?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        if (x.PrimaryPhone?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        return false;
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -278,12 +333,27 @@
             queryParams.Page = state.Page + 1; // MudBlazor uses 0-based paging
             queryParams.PageSize = state.PageSize;
             
-            // Handle sorting
+            // Handle multi-column sorting
             if (state.SortDefinitions?.Any() == true)
             {
-                var sortDef = state.SortDefinitions.First();
-                queryParams.SortBy = sortDef.SortBy;
-                queryParams.SortDescending = sortDef.Descending;
+                var primarySort = state.SortDefinitions.First();
+                queryParams.SortBy = primarySort.SortBy;
+                queryParams.SortDescending = primarySort.Descending;
+                
+                // TODO: Implement secondary sorting in PersonQueryParameters
+                // For now, we only use the primary sort
+            }
+            else
+            {
+                // Default sorting by LastName
+                queryParams.SortBy = "LastName";
+                queryParams.SortDescending = false;
+            }
+
+            // Apply quick search if present
+            if (!string.IsNullOrEmpty(_searchString) && string.IsNullOrEmpty(queryParams.SearchTerm))
+            {
+                queryParams.SearchTerm = _searchString;
             }
 
             // Apply date range filter
@@ -332,17 +402,18 @@
         {
             await dataGrid.ReloadServerData();
         }
-    }
-
-    private async Task ClearFilters()
+    }    private async Task ClearFilters()
     {
         queryParams = new PersonQueryParameters { PageSize = queryParams.PageSize };
         dateRange = null;
+        _searchString = "";
         
         if (dataGrid != null)
         {
             await dataGrid.ReloadServerData();
         }
+        
+        Snackbar.Add("All filters cleared", Severity.Info);
     }
 
     private async Task ExportData()
@@ -448,4 +519,31 @@
         "VC" => "Vendor Contact",
         _ => personType
     };
+
+    // Helper methods for filter status
+    private bool HasActiveFilters()
+    {
+        return !string.IsNullOrEmpty(queryParams.SearchTerm) ||
+               !string.IsNullOrEmpty(queryParams.PersonType) ||
+               !string.IsNullOrEmpty(queryParams.FirstName) ||
+               !string.IsNullOrEmpty(queryParams.LastName) ||
+               !string.IsNullOrEmpty(queryParams.Email) ||
+               queryParams.CreatedAfter.HasValue ||
+               queryParams.CreatedBefore.HasValue ||
+               !string.IsNullOrEmpty(_searchString);
+    }
+
+    private int GetActiveFiltersCount()
+    {
+        int count = 0;
+        if (!string.IsNullOrEmpty(queryParams.SearchTerm)) count++;
+        if (!string.IsNullOrEmpty(queryParams.PersonType)) count++;
+        if (!string.IsNullOrEmpty(queryParams.FirstName)) count++;
+        if (!string.IsNullOrEmpty(queryParams.LastName)) count++;
+        if (!string.IsNullOrEmpty(queryParams.Email)) count++;
+        if (queryParams.CreatedAfter.HasValue) count++;
+        if (queryParams.CreatedBefore.HasValue) count++;
+        if (!string.IsNullOrEmpty(_searchString)) count++;
+        return count;
+    }
 }

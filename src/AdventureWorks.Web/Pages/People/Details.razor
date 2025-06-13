@@ -1,0 +1,383 @@
+@page "/people/{id:int}"
+@inject IPersonService PersonService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>@(person?.FullName ?? "Person Details") - AdventureWorks</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-1 mobile-first-container">
+    <MudGrid Spacing="1">
+        <!-- Header Section -->
+        <MudItem xs="12">
+            <MudPaper Class="pa-2 pa-sm-3" Elevation="1">
+                <MudStack Spacing="1">
+                    <MudBreadcrumbs Items="breadcrumbItems" Class="responsive-breadcrumbs" />
+                    <MudStack Row="false" Class="header-content">
+                        <MudText Typo="Typo.h6" Color="Color.Primary" Class="responsive-title">
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-1" Size="Size.Small" />
+                            @(person?.FullName ?? "Person Details")
+                        </MudText>
+                        <MudStack Row Spacing="1" Justify="Justify.Center" Class="action-buttons">
+                            <MudButton Variant="Variant.Outlined" 
+                                       Color="Color.Secondary" 
+                                       Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                                       Href="/people"
+                                       Class="responsive-btn">
+                                <MudText Class="d-none d-sm-inline">Back</MudText>
+                                <MudText Class="d-inline d-sm-none">←</MudText>
+                            </MudButton>
+                            @if (person != null)
+                            {
+                                <MudButton Variant="Variant.Filled" 
+                                           Color="Color.Primary" 
+                                           Size="Size.Small"
+                                           StartIcon="@Icons.Material.Filled.Edit"
+                                           Href="@($"/people/{Id}/edit")"
+                                           Class="responsive-btn">
+                                    <MudText Class="d-none d-sm-inline">Edit</MudText>
+                                    <MudText Class="d-inline d-sm-none">✏️</MudText>
+                                </MudButton>
+                            }
+                        </MudStack>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        <!-- Loading State -->
+        @if (loading)
+        {
+            <MudItem xs="12">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-2" />
+                    <MudText Align="Align.Center">Loading...</MudText>
+                </MudPaper>
+            </MudItem>
+        }
+        
+        <!-- Error State -->
+        @if (!loading && person == null)
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Error" Class="my-2">
+                    <MudText>Person not found.</MudText>
+                    <MudButton Variant="Variant.Text" 
+                               Color="Color.Primary"
+                               Size="Size.Small"
+                               Href="/people"
+                               StartIcon="@Icons.Material.Filled.ArrowBack"
+                               Class="mt-1">
+                        Return to List
+                    </MudButton>
+                </MudAlert>
+            </MudItem>
+        }
+
+        <!-- Content -->
+        @if (!loading && person != null)
+        {
+            <!-- Personal Information -->
+            <MudItem xs="12" lg="6">
+                <MudPaper Class="pa-2 pa-sm-3" Elevation="1" Style="height: 100%;">
+                    <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-1 mb-sm-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-1" Size="Size.Small" />
+                        Personal Information
+                    </MudText>
+                    <MudDivider Class="mb-1 mb-sm-2" />
+                    
+                    <MudGrid Spacing="1">
+                        <MudItem xs="12">
+                            <MudField Label="Person Type" Variant="Variant.Outlined" Class="compact-field">
+                                @GetPersonTypeDisplay(person.PersonType)
+                            </MudField>
+                        </MudItem>
+                        
+                        @if (!string.IsNullOrEmpty(person.Title))
+                        {
+                            <MudItem xs="12" sm="6">
+                                <MudField Label="Title" Variant="Variant.Outlined" Class="compact-field">
+                                    @person.Title
+                                </MudField>
+                            </MudItem>
+                        }
+
+                        <MudItem xs="12" sm="@(!string.IsNullOrEmpty(person.Title) ? 6 : 12)" md="6">
+                            <MudField Label="First Name" Variant="Variant.Outlined" Class="compact-field">
+                                @person.FirstName
+                            </MudField>
+                        </MudItem>
+                        
+                        @if (!string.IsNullOrEmpty(person.MiddleName))
+                        {
+                            <MudItem xs="12" sm="6">
+                                <MudField Label="Middle Name" Variant="Variant.Outlined" Class="compact-field">
+                                    @person.MiddleName
+                                </MudField>
+                            </MudItem>
+                        }
+
+                        <MudItem xs="12" sm="@(!string.IsNullOrEmpty(person.MiddleName) ? 6 : 12)" md="6">
+                            <MudField Label="Last Name" Variant="Variant.Outlined" Class="compact-field">
+                                @person.LastName
+                            </MudField>
+                        </MudItem>
+                        
+                        @if (!string.IsNullOrEmpty(person.Suffix))
+                        {
+                            <MudItem xs="12" sm="6">
+                                <MudField Label="Suffix" Variant="Variant.Outlined" Class="compact-field">
+                                    @person.Suffix
+                                </MudField>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+
+            <!-- Additional Information -->
+            <MudItem xs="12" lg="6">
+                <MudPaper Class="pa-2 pa-sm-3" Elevation="1" Style="height: 100%;">
+                    <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-1 mb-sm-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-1" Size="Size.Small" />
+                        Additional Information
+                    </MudText>
+                    <MudDivider Class="mb-1 mb-sm-2" />
+                    
+                    <MudGrid Spacing="1">
+                        <MudItem xs="12" sm="6">
+                            <MudField Label="Business Entity ID" Variant="Variant.Outlined" Class="compact-field">
+                                @person.BusinessEntityId
+                            </MudField>
+                        </MudItem>
+                        
+                        <MudItem xs="12" sm="6">
+                            <MudField Label="Email Promotion" Variant="Variant.Outlined" Class="compact-field">
+                                @GetEmailPromotionDisplay(person.EmailPromotion)
+                            </MudField>
+                        </MudItem>
+                        
+                        <MudItem xs="12">
+                            <MudField Label="Modified Date" Variant="Variant.Outlined" Class="compact-field">
+                                @person.ModifiedDate.ToString("yyyy-MM-dd HH:mm")
+                            </MudField>
+                        </MudItem>
+                        
+                        @if (!string.IsNullOrEmpty(person.Demographics))
+                        {
+                            <MudItem xs="12">
+                                <MudField Label="Demographics" Variant="Variant.Outlined" Class="compact-field">
+                                    <div class="demographics-content">
+                                        @person.Demographics
+                                    </div>
+                                </MudField>
+                            </MudItem>
+                        }
+                        
+                        <MudItem xs="12">
+                            <MudField Label="Row GUID" Variant="Variant.Outlined" Class="compact-field">
+                                @person.Rowguid.ToString()[..8]...
+                            </MudField>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+<style>
+    /* Mobile-First Design */
+    .mobile-first-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0 4px;
+    }
+    
+    /* Responsive Breadcrumbs */
+    .responsive-breadcrumbs .mud-breadcrumb-item {
+        font-size: 0.6rem;
+    }
+    
+    /* Header Content - Stack on Mobile */
+    .header-content {
+        gap: 0.5rem;
+    }
+    
+    /* Responsive Title */
+    .responsive-title {
+        font-size: 1rem;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+    
+    /* Action Buttons - Mobile First */
+    .action-buttons {
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .responsive-btn {
+        min-width: 44px; /* Touch-friendly minimum */
+        padding: 4px 8px;
+    }
+    
+    /* Compact Fields - Mobile Optimized */
+    .compact-field .mud-input-control {
+        margin-bottom: 2px;
+    }
+    
+    .compact-field .mud-input-control .mud-input {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+    
+    .compact-field .mud-input-label {
+        font-size: 0.7rem;
+    }
+    
+    /* Demographics Content */
+    .demographics-content {
+        max-height: 60px;
+        overflow-y: auto;
+        font-size: 0.75rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+      /* Small Screens (≥480px) */
+    @@media (min-width: 480px) {
+        .mobile-first-container {
+            padding: 0 8px;
+        }
+        
+        .responsive-breadcrumbs .mud-breadcrumb-item {
+            font-size: 0.7rem;
+        }
+        
+        .responsive-title {
+            font-size: 1.1rem;
+        }
+        
+        .compact-field .mud-input-control .mud-input {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+        
+        .compact-field .mud-input-label {
+            font-size: 0.75rem;
+        }
+    }
+      /* Medium Screens (≥768px) */
+    @@media (min-width: 768px) {
+        .mobile-first-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 12px;
+        }
+        
+        .header-content {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .action-buttons {
+            margin-top: 0;
+        }
+        
+        .responsive-title {
+            font-size: 1.25rem;
+        }
+        
+        .responsive-breadcrumbs .mud-breadcrumb-item {
+            font-size: 0.75rem;
+        }
+        
+        .compact-field .mud-input-control .mud-input {
+            padding: 8px 12px;
+            font-size: 0.875rem;
+        }
+        
+        .demographics-content {
+            max-height: 80px;
+            font-size: 0.8rem;
+        }
+    }
+      /* Large Screens (≥1024px) */
+    @@media (min-width: 1024px) {
+        .mobile-first-container {
+            max-width: 960px;
+        }
+        
+        .responsive-title {
+            font-size: 1.5rem;
+        }
+        
+        .demographics-content {
+            max-height: 100px;
+            font-size: 0.875rem;
+        }
+    }
+      /* Extra Large Screens (≥1200px) */
+    @@media (min-width: 1200px) {
+        .mobile-first-container {
+            max-width: 1140px;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    
+    private PersonDetailDto? person;
+    private bool loading = false;
+    
+    private List<BreadcrumbItem> breadcrumbItems = new()
+    {
+        new BreadcrumbItem("Home", href: "/"),
+        new BreadcrumbItem("People", href: "/people"),
+        new BreadcrumbItem("Details", href: null, disabled: true)
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        loading = true;
+        try
+        {
+            person = await PersonService.GetPersonByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading person: {ex.Message}", Severity.Error);
+            person = null;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private string GetPersonTypeDisplay(string personType)
+    {
+        return personType switch
+        {
+            "IN" => "Individual Customer",
+            "EM" => "Employee", 
+            "SP" => "Sales Person",
+            "SC" => "Store Contact",
+            "VC" => "Vendor Contact",
+            _ => personType
+        };
+    }
+    
+    private string GetEmailPromotionDisplay(int emailPromotion)
+    {
+        return emailPromotion switch
+        {
+            0 => "No email promotions",
+            1 => "AdventureWorks only",
+            2 => "AdventureWorks and partners",
+            _ => emailPromotion.ToString()
+        };
+    }
+}

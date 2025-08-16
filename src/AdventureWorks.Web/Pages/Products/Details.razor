@@ -1,0 +1,56 @@
+@page "/products/details/{ProductId:int}"
+@inject IProductService ProductService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Product Details</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudGrid Spacing="3">
+        <MudItem xs="12">
+            <MudText Typo="Typo.h4">Product Details</MudText>
+        </MudItem>
+        <MudItem xs="12">
+            @if (product == null)
+            {
+                <MudAlert Severity="Severity.Error">Product not found.</MudAlert>
+            }
+            else
+            {
+                <MudPaper Class="pa-4">
+                    <MudText Typo="Typo.h6">Name: @product.Name</MudText>
+                    <MudText Typo="Typo.h6">Product Number: @product.ProductNumber</MudText>
+                    <MudText Typo="Typo.h6">Price: @product.ListPrice.ToString("C")</MudText>
+                    <MudText Typo="Typo.h6">Category: @product.CategoryName</MudText>
+                    <MudText Typo="Typo.h6">Subcategory: @product.SubcategoryName</MudText>
+                    <MudText Typo="Typo.h6">Active: @(product.IsActive ? "Yes" : "No")</MudText>
+                </MudPaper>
+            }
+        </MudItem>
+        <MudItem xs="12">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">Back to List</MudButton>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    [Parameter] public int ProductId { get; set; }
+    private ProductDto? product;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            product = await ProductService.GetProductByIdAsync(ProductId);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading product details: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/products");
+    }
+}

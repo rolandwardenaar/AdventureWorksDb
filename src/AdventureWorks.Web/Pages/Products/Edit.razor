@@ -1,0 +1,76 @@
+@page "/products/edit/{ProductId:int}"
+@inject IProductService ProductService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Edit Product</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudGrid Spacing="3">
+        <MudItem xs="12">
+            <MudText Typo="Typo.h4">Edit Product</MudText>
+        </MudItem>
+        <MudItem xs="12">
+            <MudForm @ref="form" OnValidSubmit="HandleValidSubmit">
+                <MudTextField @bind-Value="product.Name" Label="Name" Required="true" />
+                <MudTextField @bind-Value="product.ProductNumber" Label="Product Number" Required="true" />
+                <MudNumericField @bind-Value="product.ListPrice" Label="Price" Required="true" />
+                <MudTextField @bind-Value="product.Color" Label="Color" />
+                <MudNumericField @bind-Value="product.SafetyStockLevel" Label="Safety Stock Level" />
+                <MudNumericField @bind-Value="product.ReorderPoint" Label="Reorder Point" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Type="Submit">Save</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">Cancel</MudButton>
+            </MudForm>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    [Parameter] public int ProductId { get; set; }
+    private MudForm? form;
+    private ProductUpdateDto product = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var existingProduct = await ProductService.GetProductByIdAsync(ProductId);
+            if (existingProduct != null)
+            {
+                product = new ProductUpdateDto
+                {
+                    ProductId = existingProduct.ProductId,
+                    Name = existingProduct.Name,
+                    ProductNumber = existingProduct.ProductNumber,
+                    ListPrice = existingProduct.ListPrice,
+                    Color = existingProduct.Color,
+                    SafetyStockLevel = existingProduct.SafetyStockLevel,
+                    ReorderPoint = existingProduct.ReorderPoint
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading product: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await ProductService.UpdateProductAsync(product);
+            Snackbar.Add("Product updated successfully!", Severity.Success);
+            NavigateBack();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating product: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/products");
+    }
+}

@@ -1,0 +1,50 @@
+@page "/products/create"
+@inject IProductService ProductService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Create Product</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudGrid Spacing="3">
+        <MudItem xs="12">
+            <MudText Typo="Typo.h4">Create New Product</MudText>
+        </MudItem>
+        <MudItem xs="12">
+            <MudForm @ref="form" OnValidSubmit="HandleValidSubmit">
+                <MudTextField @bind-Value="product.Name" Label="Name" Required="true" />
+                <MudTextField @bind-Value="product.ProductNumber" Label="Product Number" Required="true" />
+                <MudNumericField @bind-Value="product.ListPrice" Label="Price" Required="true" />
+                <MudTextField @bind-Value="product.Color" Label="Color" />
+                <MudNumericField @bind-Value="product.SafetyStockLevel" Label="Safety Stock Level" />
+                <MudNumericField @bind-Value="product.ReorderPoint" Label="Reorder Point" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Type="Submit">Create</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="NavigateBack">Cancel</MudButton>
+            </MudForm>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private MudForm? form;
+    private ProductCreateDto product = new();
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await ProductService.CreateProductAsync(product);
+            Snackbar.Add("Product created successfully!", Severity.Success);
+            NavigateBack();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error creating product: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/products");
+    }
+}

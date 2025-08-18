@@ -1,3 +1,6 @@
+---
+mode: beastmode
+---
 # AdventureWorks Copilot Code Generation Prompts
 
 ## Quick Generation Prompts

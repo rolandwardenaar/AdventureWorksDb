@@ -1,3 +1,6 @@
+---
+mode: beastmode
+---
 # GitHub Copilot Configuration for AdventureWorks
 
 This folder contains comprehensive GitHub Copilot configuration files to ensure consistent, high-quality code generation for the AdventureWorks Blazor Server project.

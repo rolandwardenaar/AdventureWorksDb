@@ -1,3 +1,6 @@
+---
+mode: beastmode
+---
 # AdventureWorks Blazor Server Project - Copilot Instructions
 
 ## Project Overview
